@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 
 const BingoBoard = () => {
   const [boardData, setBoardData] = useState([[]]);
+  const [selectedCells, setSelectedCells] = useState({}); // Tracks selected cells
+  const [isCenterLocked, setIsCenterLocked] = useState(false); // Locks center cell editing
+
+  // Center coords cuz I use them
+  const CENTER_POSITION = { row: 2, col: 2 };
 
   // Load data from the JSON file
   useEffect(() => {
@@ -10,21 +15,27 @@ const BingoBoard = () => {
       .then((data) => setBoardData(data.squares));
   }, []);
 
-  // Track the color state for each cell in a 2D array
-  const [cellColors, setCellColors] = useState(
-    Array(5).fill().map(() => Array(5).fill('white'))
-  );
+  // Handle content change for editable cells
+  const handleCellChange = (e, row, col) => {
+    const updatedBoard = [...boardData];
+    updatedBoard[row][col] = e.target.value;
+    setBoardData(updatedBoard);
+  };
 
-  // Track the content of the center cell
-  // Used to make free space editable
-  const [centerContent, setCenterContent] = useState('');  
+  // Handle Enter key press on the center cell to lock it
+  const handleKeyPress = (e, row, col) => {
+    if (row === CENTER_POSITION.row && col === CENTER_POSITION.col && e.key === 'Enter') {
+      setIsCenterLocked(true);
+    }
+  };
 
-  // Toggle cell color between red and white
+  // Toggles cell colors on click
   const toggleCellColor = (row, col) => {
-    if (row === 2 && col === 2) return; // Skip the center cell
-    const newColors = [...cellColors];
-    newColors[row][col] = newColors[row][col] === 'white' ? 'red' : 'white';
-    setCellColors(newColors);
+    const cellKey = `${row}-${col}`;
+    setSelectedCells((prev) => ({
+      ...prev,
+      [cellKey]: !prev[cellKey],
+    }));
   };
 
   return (
@@ -33,27 +44,28 @@ const BingoBoard = () => {
         <tbody>
           {boardData.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              {row.map((cell, colIndex) => (
-                <td
-                  key={colIndex}
-                  onClick={() => toggleCellColor(rowIndex, colIndex)}
-                  style={{
-                    border: '1px solid #333',
-                    width: '60px',
-                    height: '60px',
-                    backgroundColor: cellColors[rowIndex][colIndex],
-                    color: cellColors[rowIndex][colIndex] === 'white' ? 'black' : 'white',
-                    fontSize: '20px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {/* Make center cell editable */}
-                  {rowIndex === 2 && colIndex === 2 ? (
+              {row.map((cell, colIndex) => {
+                const isCenterCell = rowIndex === CENTER_POSITION.row && colIndex === CENTER_POSITION.col;
+                const cellKey = `${rowIndex}-${colIndex}`;
+                const isSelected = selectedCells[cellKey];
+
+                return (
+                  <td
+                    key={colIndex}
+                    style={{
+                      border: '1px solid #333',
+                      width: '60px',
+                      height: '60px',
+                      backgroundColor: isSelected ? 'lightgreen' : 'white',
+                    }}
+                    onClick={() => toggleCellColor(rowIndex, colIndex)}
+                  >
                     <input
                       type="text"
-                      value={centerContent}
-                      onChange={(e) => setCenterContent(e.target.value)}
+                      value={cell}
+                      onChange={(e) => handleCellChange(e, rowIndex, colIndex)}
+                      onKeyPress={(e) => handleKeyPress(e, rowIndex, colIndex)}
+                      disabled={isCenterCell && isCenterLocked} // Lock center cell after Enter is pressed
                       style={{
                         width: '100%',
                         height: '100%',
@@ -61,15 +73,13 @@ const BingoBoard = () => {
                         fontSize: '20px',
                         border: 'none',
                         outline: 'none',
-                        backgroundColor: 'white',
-                        color: 'black',
+                        backgroundColor: 'transparent',
+                        cursor: isCenterCell && isCenterLocked ? 'pointer' : 'text',
                       }}
                     />
-                  ) : (
-                    cell
-                  )}
-                </td>
-              ))}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
