@@ -28,7 +28,7 @@ app.post('/api/saveBoard', async (req, res) => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     `;
-    const cre = await pool.query(queryText);
+    const create = await pool.query(queryText);
     const queryText = `
       INSERT INTO bingo_boards (name, board, selected_cells)
       VALUES ($1, $2, $3)

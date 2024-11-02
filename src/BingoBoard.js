@@ -83,6 +83,7 @@ const BingoBoard = () => {
                       border: '1px solid #333',
                       width: '60px',
                       height: '60px',
+                      textAlign: 'center',
                       backgroundColor: isSelected ? 'lightgreen' : 'white',
                       cursor: 'pointer',
                     }}
