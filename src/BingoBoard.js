@@ -15,16 +15,16 @@ const BingoBoard = () => {
       .then((data) => setBoardData(data.squares));
   }, []);
 
-  // Handle content change for editable cells
-  const handleCellChange = (e, row, col) => {
+  // Handle content change for the center cell only
+  const handleCenterChange = (e) => {
     const updatedBoard = [...boardData];
-    updatedBoard[row][col] = e.target.value;
+    updatedBoard[CENTER_POSITION.row][CENTER_POSITION.col] = e.target.value;
     setBoardData(updatedBoard);
   };
 
   // Handle Enter key press on the center cell to lock it
-  const handleKeyPress = (e, row, col) => {
-    if (row === CENTER_POSITION.row && col === CENTER_POSITION.col && e.key === 'Enter') {
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
       setIsCenterLocked(true);
     }
   };
@@ -57,26 +57,31 @@ const BingoBoard = () => {
                       width: '60px',
                       height: '60px',
                       backgroundColor: isSelected ? 'lightgreen' : 'white',
+                      cursor: 'pointer',
                     }}
                     onClick={() => toggleCellColor(rowIndex, colIndex)}
                   >
-                    <input
-                      type="text"
-                      value={cell}
-                      onChange={(e) => handleCellChange(e, rowIndex, colIndex)}
-                      onKeyPress={(e) => handleKeyPress(e, rowIndex, colIndex)}
-                      disabled={isCenterCell && isCenterLocked} // Lock center cell after Enter is pressed
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        textAlign: 'center',
-                        fontSize: '20px',
-                        border: 'none',
-                        outline: 'none',
-                        backgroundColor: 'transparent',
-                        cursor: isCenterCell && isCenterLocked ? 'pointer' : 'text',
-                      }}
-                    />
+                    {isCenterCell ? (
+                      <input
+                        type="text"
+                        value={cell}
+                        onChange={handleCenterChange}
+                        onKeyPress={handleKeyPress}
+                        disabled={isCenterLocked} // Lock center cell after Enter is pressed
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          textAlign: 'center',
+                          fontSize: '20px',
+                          border: 'none',
+                          outline: 'none',
+                          backgroundColor: 'transparent',
+                          cursor: isCenterLocked ? 'pointer' : 'text',
+                        }}
+                      />
+                    ) : (
+                      cell
+                    )}
                   </td>
                 );
               })}
