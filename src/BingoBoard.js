@@ -4,6 +4,7 @@ const BingoBoard = () => {
   const [boardData, setBoardData] = useState([[]]);
   const [selectedCells, setSelectedCells] = useState({}); // Tracks selected cells
   const [isCenterLocked, setIsCenterLocked] = useState(false); // Locks center cell editing
+  const [playerName, setPlayerName] = useState("");
 
   // Center coords cuz I use them
   const CENTER_POSITION = { row: 2, col: 2 };
@@ -36,6 +37,32 @@ const BingoBoard = () => {
       ...prev,
       [cellKey]: !prev[cellKey],
     }));
+  };
+
+  // Submit data to the backend
+  const handleSubmit = () => {
+    const boardState = {
+      name: playerName,
+      board: boardData,
+      selectedCells,
+    };
+
+    fetch('/api/saveBoard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(boardState),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Board saved successfully!');
+        } else {
+          alert('Failed to save board');
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
 
   return (
@@ -89,6 +116,9 @@ const BingoBoard = () => {
           ))}
         </tbody>
       </table>
+      <button onClick={handleSubmit} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px' }}>
+        Submit Board
+      </button>
     </div>
   );
 };
